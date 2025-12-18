@@ -45,7 +45,7 @@ class P115StrgmSub(_PluginBase):
     # 插件图标
     plugin_icon = "https://raw.githubusercontent.com/jxxghp/MoviePilot-Plugins/main/icons/cloud.png"
     # 插件版本
-    plugin_version = "1.0.0"
+    plugin_version = "1.0.1"
     # 插件作者
     plugin_author = "mrtian2016"
     # 作者主页
@@ -63,14 +63,14 @@ class P115StrgmSub(_PluginBase):
     # 配置属性
     _enabled: bool = False
     _onlyonce: bool = False
-    _cron: str = "*/30 * * * *"
+    _cron: str = "30 * * * *"
     _notify: bool = False
     _cookies: str = ""
     _pansou_url: str = "https://so.252035.xyz"
     _pansou_username: str = ""
     _pansou_password: str = ""
     _pansou_auth_enabled: bool = True
-    _pansou_channels: str = ""  # TG搜索频道列表,用逗号分隔
+    _pansou_channels: str = "QukanMovie"  # TG搜索频道列表,用逗号分隔
     _save_path: str = "/我的接收/MoviePilot"
     _only_115: bool = True  # 只搜索115网盘资源
     # 运行时对象
@@ -85,15 +85,15 @@ class P115StrgmSub(_PluginBase):
         # 加载配置
         if config:
             self._enabled = config.get("enabled", False)
-            self._cron = config.get("cron", "")
+            self._cron = config.get("cron", "30 * * * *")
             self._notify = config.get("notify", False)
             self._onlyonce = config.get("onlyonce", False)
             self._cookies = config.get("cookies", "")
-            self._pansou_url = config.get("pansou_url", "")
+            self._pansou_url = config.get("pansou_url", "https://so.252035.xyz/")
             self._pansou_username = config.get("pansou_username", "")
             self._pansou_password = config.get("pansou_password", "")
             self._pansou_auth_enabled = config.get("pansou_auth_enabled", True)
-            self._pansou_channels = config.get("pansou_channels", "")
+            self._pansou_channels = config.get("pansou_channels", "QukanMovie")
             self._save_path = config.get("save_path", "/我的接收/MoviePilot")
             self._only_115 = config.get("only_115", True)
 
@@ -107,7 +107,7 @@ class P115StrgmSub(_PluginBase):
                 self._scheduler.add_job(
                     func=self.sync_subscribes,
                     trigger='date',
-                                                            run_date=datetime.datetime.now(tz=pytz.timezone(settings.TZ)) + datetime.timedelta(seconds=3)
+                    run_date=datetime.datetime.now(tz=pytz.timezone(settings.TZ)) + datetime.timedelta(seconds=3)
                 )
                 if self._scheduler.get_jobs():
                     self._scheduler.print_jobs()
