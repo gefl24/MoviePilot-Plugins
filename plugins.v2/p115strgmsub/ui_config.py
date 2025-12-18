@@ -480,8 +480,7 @@ class UIConfig:
                                 'events': {
                                     'click': {
                                         'api': '/plugin/P115StrgmSub/clear_history',
-                                        'method': 'post',
-                                        'params': {'apikey': settings.API_TOKEN}
+                                        'method': 'post'
                                     }
                                 }
                             }]
