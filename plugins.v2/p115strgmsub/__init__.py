@@ -313,31 +313,12 @@ class P115StrgmSub(_PluginBase):
 
     def get_api(self) -> List[Dict[str, Any]]:
         """获取插件API"""
-        # return []
         return [
             {
-                "path": "/search",
-                "endpoint": self.api_search,
+                "path": "/sync_subscribes",
+                "endpoint": self.sync_subscribes,
                 "methods": ["GET"],
-                "summary": "搜索网盘资源"
-            },
-            {
-                "path": "/transfer",
-                "endpoint": self.api_transfer,
-                "methods": ["POST"],
-                "summary": "转存分享链接"
-            },
-            {
-                "path": "/clear_history",
-                "endpoint": self.api_clear_history,
-                "methods": ["POST"],
-                "summary": "清空历史记录"
-            },
-            {
-                "path": "/directories",
-                "endpoint": self.api_list_directories,
-                "methods": ["GET"],
-                "summary": "列出115网盘目录"
+                "summary": "执行同步订阅追更"
             }
         ]
 
