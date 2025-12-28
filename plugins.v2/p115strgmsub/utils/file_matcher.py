@@ -179,8 +179,8 @@ class FileMatcher:
         :param file_name: 文件名
         :return: (季号, 集号) 或 None
         """
-        # 匹配 S01E01、S1E1 等格式
-        match = re.search(r'[Ss](\d{1,2})[Ee](\d{1,2})', file_name)
+        # 匹配 S01E01、S1E1、S01E175 等格式（支持1-4位集数）
+        match = re.search(r'[Ss](\d{1,2})[Ee](\d{1,4})', file_name)
         if match:
             return int(match.group(1)), int(match.group(2))
         return None
@@ -205,10 +205,10 @@ class FileMatcher:
         """
         # 宽松模式：不包含季号的匹配模式（需要额外验证）
         loose_patterns = [
-            # 第1集 格式
-            rf'第\s*0?{episode}\s*集',
-            # EP01 格式
-            rf'[Ee][Pp]0?{episode}(?!\d)',
+            # 第1集、第175集 格式
+            rf'第\s*{episode}\s*集',
+            # EP01、EP175 格式
+            rf'[Ee][Pp]{episode}(?!\d)',
             # E01格式（开头或特定位置）
             rf'[\[\(\s\.\-_][Ee]0?{episode}[\]\)\s\.\-_]',
         ]
