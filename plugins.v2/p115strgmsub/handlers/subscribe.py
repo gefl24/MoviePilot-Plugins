@@ -121,10 +121,22 @@ class SubscribeHandler:
                             text=f"{subscribe.name}{season_text} 所有内容已转存完成，订阅已移至历史记录。"
                         )
                 except Exception as e:
-                    logger.error(f"完成订阅时出错：{e}", exc_info=True)
+                    import traceback
+                    logger.error(
+                        f"检查订阅完成状态时出错 - "
+                        f"订阅ID: {subscribe.id}, 订阅名: {subscribe.name}, "
+                        f"异常类型: {type(e).__name__}, 异常消息: {e}\n"
+                        f"堆栈跟踪:\n{traceback.format_exc()}"
+                    )
 
         except Exception as e:
-            logger.error(f"检查订阅完成状态时出错：{e}", exc_info=True)
+            import traceback
+            logger.error(
+                f"检查订阅完成状态时出错 - "
+                f"订阅ID: {subscribe.id}, 订阅名: {subscribe.name}, "
+                f"异常类型: {type(e).__name__}, 异常消息: {e}\n"
+                f"堆栈跟踪:\n{traceback.format_exc()}"
+            )
 
     def update_subscribe_sites(self, block: bool):
         """
