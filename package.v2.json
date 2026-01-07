@@ -1,12 +1,12 @@
 {
   "P115StrgmSub": {
     "name": "115网盘订阅追更",
-    "release": true,
+    "release": false,
     "description": "结合MoviePilot订阅功能，自动搜索115网盘资源并转存缺失剧集；支持扫描115音乐目录生成本地strm。",
     "labels": "订阅,115网盘,音乐",
     "version": "1.2.0",
     "icon": "https://raw.githubusercontent.com/jxxghp/MoviePilot-Plugins/main/icons/cloud.png",
-    "author": "gefl24",
+    "author": "mrtian2016",
     "level": 1,
     "history": {
       "v1.2.0": "1. 新增115网盘音乐文件生成本地strm功能；2. 支持配置音乐目录和Alist/WebDAV链接前缀。",
