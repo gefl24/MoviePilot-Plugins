@@ -249,6 +249,10 @@ class UIConfig:
             "block_system_subscribe": False,
             "max_transfer_per_sync": 50,
             "batch_size": 20
+            "music_sync_enabled": False,
+            "music_url_prefix": "",
+            "music_115_path": "/我的接收/Music",
+            "music_local_path": "/data/music_strm",
         }
         
         return form_schema, default_config
