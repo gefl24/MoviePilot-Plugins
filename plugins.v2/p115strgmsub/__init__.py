@@ -20,7 +20,7 @@ from app.plugins import _PluginBase
 from app.schemas.types import EventType, MediaType, NotificationType
 
 from .clients import PanSouClient, P115ClientManager, NullbrClient
-from .handlers import SearchHandler, SyncHandler, SubscribeHandler, ApiHandler
+from .handlers import SearchHandler, SyncHandler, SubscribeHandler, ApiHandler, MusicStrmHandler
 from .ui import UIConfig
 from .utils import (
     download_so_file,
@@ -87,6 +87,14 @@ class P115StrgmSub(_PluginBase):
     _max_transfer_per_sync: int = 50
     _batch_size: int = 20
     _skip_other_season_dirs: bool = True
+    # [新增] 音乐配置属性
+    _music_sync_enabled: bool = False
+    _music_115_path: str = ""
+    _music_local_path: str = ""
+    _music_url_prefix: str = ""
+    
+    # [新增] 音乐处理器
+    _music_handler: Optional[MusicStrmHandler] = None
 
     # 运行时对象
     _pansou_client: Optional[PanSouClient] = None
@@ -182,11 +190,18 @@ class P115StrgmSub(_PluginBase):
             self._max_transfer_per_sync = int(config.get("max_transfer_per_sync", 50) or 50)
             self._batch_size = int(config.get("batch_size", 20) or 20)
             self._skip_other_season_dirs = config.get("skip_other_season_dirs", True)
+            # [新增] 读取音乐配置
+            self._music_sync_enabled = config.get("music_sync_enabled", False)
+            self._music_115_path = config.get("music_115_path", "/我的接收/Music")
+            self._music_local_path = config.get("music_local_path", "/data/music_strm")
+            self._music_url_prefix = config.get("music_url_prefix", "")
 
             new_block_state = config.get("block_system_subscribe", False)
             old_block_state = self._block_system_subscribe
             self._block_system_subscribe = new_block_state
-
+            self._init_clients()
+            self._init_handlers()
+        
             if new_block_state != old_block_state:
                 self._init_subscribe_handler()
                 self._subscribe_handler.update_subscribe_sites(new_block_state)
@@ -321,7 +336,17 @@ class P115StrgmSub(_PluginBase):
             get_data_func=self.get_data,
             save_data_func=self.save_data
         )
-
+        # [新增] 初始化音乐处理器
+        if self._music_sync_enabled and self._p115_manager:
+            self._music_handler = MusicStrmHandler(
+                p115_manager=self._p115_manager,
+                p115_root_path=self._music_115_path,
+                local_save_path=self._music_local_path,
+                url_prefix=self._music_url_prefix
+            )
+        else:
+            self._music_handler = None
+            
     def get_state(self) -> bool:
         return self._enabled
 
@@ -357,23 +382,39 @@ class P115StrgmSub(_PluginBase):
 
     def get_service(self) -> List[Dict[str, Any]]:
         """注册插件公共服务"""
-        if self._enabled and self._cron:
-            return [{
-                "id": "P115StrgmSub",
-                "name": "115网盘订阅追更服务",
-                "trigger": CronTrigger.from_crontab(self._cron),
-                "func": self.sync_subscribes,
-                "kwargs": {}
-            }]
-        elif self._enabled:
-            return [{
-                "id": "P115StrgmSub",
-                "name": "115网盘订阅追更服务",
+        services = []
+
+        # 1. 原有的订阅追更服务
+        # 逻辑：如果插件启用，根据是否配置了 cron 决定使用 CronTrigger 还是 Interval
+        if self._enabled:
+            if self._cron:
+                services.append({
+                    "id": "P115StrgmSub",
+                    "name": "115网盘订阅追更服务",
+                    "trigger": CronTrigger.from_crontab(self._cron),
+                    "func": self.sync_subscribes,
+                    "kwargs": {}
+                })
+            else:
+                services.append({
+                    "id": "P115StrgmSub",
+                    "name": "115网盘订阅追更服务",
+                    "trigger": "interval",
+                    "func": self.sync_subscribes,
+                    "kwargs": {"hours": 6}
+                })
+
+        # 2. [新增] 音乐 STRM 服务 (默认每 12 小时执行一次)
+        if self._music_sync_enabled:
+            services.append({
+                "id": "P115MusicStrm",
+                "name": "115音乐STRM生成服务",
                 "trigger": "interval",
-                "func": self.sync_subscribes,
-                "kwargs": {"hours": 6}
-            }]
-        return []
+                "func": self.sync_music,
+                "kwargs": {"hours": 12}
+            })
+
+        return services
 
     def get_form(self) -> Tuple[List[dict], Dict[str, Any]]:
         """拼装插件配置页面"""
@@ -414,7 +455,12 @@ class P115StrgmSub(_PluginBase):
             "block_system_subscribe": self._block_system_subscribe,
             "max_transfer_per_sync": self._max_transfer_per_sync,
             "batch_size": self._batch_size,
-            "skip_other_season_dirs": self._skip_other_season_dirs
+            "skip_other_season_dirs": self._skip_other_season_dirs,
+            # [新增] 保存音乐配置
+            "music_sync_enabled": self._music_sync_enabled,
+            "music_115_path": self._music_115_path,
+            "music_local_path": self._music_local_path,
+            "music_url_prefix": self._music_url_prefix
         })
 
     def stop_service(self):
@@ -433,6 +479,17 @@ class P115StrgmSub(_PluginBase):
         with lock:
             self._do_sync()
 
+    def sync_music(self):
+        """执行音乐 STRM 生成任务"""
+        if not self._music_handler:
+            logger.warning("音乐 STRM 处理器未初始化，跳过任务")
+            return
+            
+        # 使用锁防止与订阅同步冲突 (可选，根据需要)
+        # with lock: 
+        logger.info("开始执行 115 音乐 STRM 生成...")
+        self._music_handler.run()
+        
     def _do_sync(self):
         """执行同步"""
         # 检查至少有一个搜索客户端可用
