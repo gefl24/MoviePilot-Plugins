@@ -175,6 +175,29 @@ class UIConfig:
                             'content': [{'component': 'VAlert', 'props': {'type': 'warning', 'variant': 'tonal', 'text': '风控防护：批量转存和单次上限可有效避免115网盘风控，建议保持默认值或适当调低'}}]
                         }]
                     },
+                    # [新增] 音乐 STRM 配置
+                    {
+                        'component': 'VRow',
+                        'content': [{
+                            'component': 'VCol',
+                            'props': {'cols': 12},
+                            'content': [{'component': 'VAlert', 'props': {'type': 'info', 'variant': 'tonal', 'text': '音乐 STRM 生成：扫描 115 指定目录并在本地生成 .strm 文件，需配合 Alist 或 WebDAV 使用。'}}]
+                        }]
+                    },
+                    {
+                        'component': 'VRow',
+                        'content': [
+                            {'component': 'VCol', 'props': {'cols': 12, 'md': 3}, 'content': [{'component': 'VSwitch', 'props': {'model': 'music_sync_enabled', 'label': '启用音乐生成'}}]},
+                            {'component': 'VCol', 'props': {'cols': 12, 'md': 9}, 'content': [{'component': 'VTextField', 'props': {'model': 'music_url_prefix', 'label': '链接前缀 (Alist/WebDAV地址)', 'placeholder': '例如: http://192.168.1.5:5244/d/115'}}]}
+                        ]
+                    },
+                    {
+                        'component': 'VRow',
+                        'content': [
+                            {'component': 'VCol', 'props': {'cols': 12, 'md': 6}, 'content': [{'component': 'VTextField', 'props': {'model': 'music_115_path', 'label': '115网盘音乐目录', 'placeholder': '/我的接收/Music'}}]},
+                            {'component': 'VCol', 'props': {'cols': 12, 'md': 6}, 'content': [{'component': 'VTextField', 'props': {'model': 'music_local_path', 'label': '本地 STRM 保存路径', 'placeholder': '/mnt/user/music'}}]}
+                        ]
+                    },
                     # 风控防护配置
                     {
                         'component': 'VRow',
